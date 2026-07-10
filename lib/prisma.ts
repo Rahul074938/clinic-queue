@@ -8,15 +8,21 @@ import path from "path";
 // To bypass this for demo purposes, we copy the database to /tmp (which is writable) on cold start.
 if (process.env.VERCEL) {
   const tmpDbPath = "/tmp/dev.db";
-  const bundledDbPath = path.join(process.cwd(), "prisma", "dev.db");
   let useTmp = false;
 
   if (!fs.existsSync(tmpDbPath)) {
     try {
-      if (fs.existsSync(bundledDbPath)) {
+      // Next.js moves files around in serverless environments. 
+      // We use 'find' to dynamically locate the bundled dev.db file.
+      const { execSync } = require("child_process");
+      const bundledDbPath = execSync("find /var/task -name dev.db 2>/dev/null | head -n 1").toString().trim();
+      
+      if (bundledDbPath && fs.existsSync(bundledDbPath)) {
         fs.copyFileSync(bundledDbPath, tmpDbPath);
-        console.log("Copied read-only SQLite database to writable /tmp/dev.db");
+        console.log("Successfully located and copied SQLite database to writable /tmp/dev.db");
         useTmp = true;
+      } else {
+        console.error("Could not dynamically locate dev.db in /var/task");
       }
     } catch (e) {
       console.error("Failed to copy database to /tmp", e);
