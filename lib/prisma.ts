@@ -1,4 +1,30 @@
 import { PrismaClient } from "@prisma/client";
+import fs from "fs";
+import path from "path";
+
+// --- VERCEL SQLITE HACK ---
+// Vercel Serverless Functions have a strictly read-only file system (except for /tmp).
+// When the app tries to save an appointment, it crashes because Prisma cannot write to the bundled database.
+// To bypass this for demo purposes, we copy the database to /tmp (which is writable) on cold start.
+if (process.env.VERCEL) {
+  const tmpDbPath = "/tmp/dev.db";
+  const bundledDbPath = path.join(process.cwd(), "prisma", "dev.db");
+
+  if (!fs.existsSync(tmpDbPath)) {
+    try {
+      if (fs.existsSync(bundledDbPath)) {
+        fs.copyFileSync(bundledDbPath, tmpDbPath);
+        console.log("Copied read-only SQLite database to writable /tmp/dev.db");
+      }
+    } catch (e) {
+      console.error("Failed to copy database to /tmp", e);
+    }
+  }
+  
+  // Force Prisma to use the writable copy
+  process.env.DATABASE_URL = `file:${tmpDbPath}`;
+}
+// ---------------------------
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
