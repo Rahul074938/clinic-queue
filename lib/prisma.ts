@@ -9,20 +9,25 @@ import path from "path";
 if (process.env.VERCEL) {
   const tmpDbPath = "/tmp/dev.db";
   const bundledDbPath = path.join(process.cwd(), "prisma", "dev.db");
+  let useTmp = false;
 
   if (!fs.existsSync(tmpDbPath)) {
     try {
       if (fs.existsSync(bundledDbPath)) {
         fs.copyFileSync(bundledDbPath, tmpDbPath);
         console.log("Copied read-only SQLite database to writable /tmp/dev.db");
+        useTmp = true;
       }
     } catch (e) {
       console.error("Failed to copy database to /tmp", e);
     }
+  } else {
+    useTmp = true;
   }
   
-  // Force Prisma to use the writable copy
-  process.env.DATABASE_URL = `file:${tmpDbPath}`;
+  if (useTmp) {
+    process.env.DATABASE_URL = `file:${tmpDbPath}`;
+  }
 }
 // ---------------------------
 
