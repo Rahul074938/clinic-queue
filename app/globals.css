@@ -1,0 +1,171 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --background: #f8fafc;
+    --foreground: #0f172a;
+
+    --card: #ffffff;
+    --card-foreground: #0f172a;
+
+    --popover: #ffffff;
+    --popover-foreground: #0f172a;
+
+    --primary: #0d9488; /* Teal 600 */
+    --primary-hover: #0f766e; /* Teal 700 */
+    --primary-foreground: #ffffff;
+
+    --secondary: #f1f5f9;
+    --secondary-foreground: #0f172a;
+
+    --muted: #f8fafc;
+    --muted-foreground: #64748b;
+
+    --accent: #8b5cf6; /* Purple 500 */
+    --accent-foreground: #ffffff;
+
+    --destructive: #ef4444;
+    --destructive-foreground: #ffffff;
+
+    --border: #e2e8f0;
+    --input: #e2e8f0;
+    --ring: #0d9488;
+
+    --radius: 0.75rem;
+
+    /* Custom Status Colors */
+    --status-scheduled: #3b82f6;   /* Blue */
+    --status-checked-in: #eab308;  /* Yellow */
+    --status-in-progress: #8b5cf6; /* Purple */
+    --status-completed: #10b981;   /* Green */
+    --status-cancelled: #64748b;   /* Slate */
+    --status-no-show: #ef4444;     /* Red */
+  }
+
+  .dark {
+    --background: #0f172a; /* Slate 900 */
+    --foreground: #f8fafc;
+
+    --card: #1e293b; /* Slate 800 */
+    --card-foreground: #f8fafc;
+
+    --popover: #1e293b;
+    --popover-foreground: #f8fafc;
+
+    --primary: #2dd4bf; /* Teal 400 */
+    --primary-hover: #14b8a6; /* Teal 500 */
+    --primary-foreground: #0f172a;
+
+    --secondary: #334155; /* Slate 700 */
+    --secondary-foreground: #f8fafc;
+
+    --muted: #1e293b;
+    --muted-foreground: #94a3b8;
+
+    --accent: #a78bfa; /* Purple 400 */
+    --accent-foreground: #0f172a;
+
+    --destructive: #f87171;
+    --destructive-foreground: #0f172a;
+
+    --border: #334155;
+    --input: #334155;
+    --ring: #2dd4bf;
+
+    /* Tell the browser to render native widgets (date picker, scrollbars,
+       select dropdowns) in dark mode so text/icons stay visible */
+    color-scheme: dark;
+  }
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-feature-settings: "rlig" 1, "calt" 1;
+  transition: background-color 0.2s ease, color 0.2s ease;
+  min-height: 100vh;
+}
+
+/* Glassmorphism custom classes */
+.glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.dark .glass {
+  background: rgba(30, 41, 59, 0.7);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Custom wait-time displays */
+.wait-time-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: .7;
+  }
+}
+
+/* Focus outline for keyboard accessibility */
+:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+/* Custom Scrollbar for dashboards */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--muted-foreground);
+}
+
+/* Card custom spacing snaps to 8px rhythm */
+.card-padding {
+  padding: 1.5rem; /* 24px */
+}
+
+/* ── Date / Time input dark-mode fixes ───────────────────────────────────────
+   Native date pickers inherit color-scheme:dark (set above) for the popup
+   calendar, but the icon and value text need explicit overrides in some
+   Chromium builds that render them with a near-black tint on dark backgrounds. */
+
+/* Tint the calendar icon to teal so it's always visible */
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator,
+input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  filter: invert(70%) sepia(60%) saturate(400%) hue-rotate(140deg) brightness(1.1);
+  cursor: pointer;
+  opacity: 0.8;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator:hover,
+input[type="time"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+
+/* Ensure the typed value and placeholder are always white in dark inputs */
+.dark input[type="date"],
+.dark input[type="time"],
+.dark input[type="datetime-local"] {
+  color-scheme: dark;
+  color: #f8fafc;
+}
