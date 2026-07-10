@@ -174,7 +174,7 @@ export default function LoginForm() {
                 onClick={() => handleAutofill("staff")}
               >
                 <span className="font-bold text-purple-400">Staff Demo</span>
-                <span className="text-[10px] text-slate-500">staff@clinic.com</span>
+                <span className="text-[10px] text-slate-500">staff@clinicqueue.com</span>
               </button>
             </div>
           </div>
