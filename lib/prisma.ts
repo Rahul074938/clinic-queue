@@ -1,6 +1,5 @@
 import { PrismaClient } from "@prisma/client";
 import fs from "fs";
-import path from "path";
 
 // --- VERCEL SQLITE HACK ---
 // Vercel Serverless Functions have a strictly read-only file system (except for /tmp).
