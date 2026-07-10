@@ -81,17 +81,21 @@ export async function POST(req: NextRequest) {
   });
   if (!doctor) return apiError("Doctor not found", 404);
 
-  const appointment = await prisma.appointment.create({
-    data: {
-      patientName,
-      patientPhone,
-      patientEmail,
-      doctorId,
-      scheduledAt: new Date(scheduledAt),
-      notes: notes ?? null,
-    },
-    include: { doctor: true },
-  });
-
-  return apiSuccess(appointment, 201);
+  try {
+    const appointment = await prisma.appointment.create({
+      data: {
+        patientName,
+        patientPhone,
+        patientEmail,
+        doctorId,
+        scheduledAt: new Date(scheduledAt),
+        notes: notes ?? null,
+      },
+      include: { doctor: true },
+    });
+    return apiSuccess(appointment, 201);
+  } catch (error: any) {
+    console.error("Failed to create appointment on Vercel:", error);
+    return apiError(error?.message || "Internal Server Error during booking", 500);
+  }
 }
