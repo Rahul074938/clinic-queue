@@ -11,22 +11,49 @@ if (process.env.VERCEL) {
 
   if (!fs.existsSync(tmpDbPath)) {
     try {
-      const { execSync } = require("child_process");
-      // Find the bundled dev.db file
-      const bundledDbPath = execSync("find /var/task -name dev.db 2>/dev/null | head -n 1").toString().trim();
+      const path = require("path");
       
+      // Define potential locations where Next.js / Vercel bundles the dev.db file
+      const potentialPaths = [
+        path.join(process.cwd(), "prisma", "dev.db"),
+        path.join(process.cwd(), ".next", "server", "prisma", "dev.db"),
+        "/var/task/prisma/dev.db"
+      ];
+
+      // Try resolving via Prisma client package path
+      try {
+        const prismaClientPath = require.resolve(".prisma/client");
+        potentialPaths.push(path.join(path.dirname(prismaClientPath), "dev.db"));
+        potentialPaths.push(path.join(path.dirname(prismaClientPath), "..", "..", "..", "prisma", "dev.db"));
+      } catch (_) {}
+
+      let bundledDbPath = "";
+      for (const p of potentialPaths) {
+        if (fs.existsSync(p)) {
+          bundledDbPath = p;
+          break;
+        }
+      }
+
+      // Fallback to a shell find if none of the specific paths worked (safely caught)
+      if (!bundledDbPath) {
+        try {
+          const { execSync } = require("child_process");
+          bundledDbPath = execSync("find /var/task -name dev.db 2>/dev/null | head -n 1").toString().trim();
+        } catch (_) {}
+      }
+
       if (bundledDbPath && fs.existsSync(bundledDbPath)) {
         fs.copyFileSync(bundledDbPath, tmpDbPath);
-        // CRITICAL: Vercel's source files are read-only, and copyFileSync preserves permissions.
-        // We MUST change the permissions of the copied file to allow SQLite to write to it!
+        // Unlock write permissions on the copied file
         fs.chmodSync(tmpDbPath, 0o666);
-        console.log("Successfully located, copied, and unlocked SQLite database at /tmp/dev.db");
+        console.log(`Successfully copied SQLite DB from ${bundledDbPath} to writable /tmp/dev.db`);
         useTmp = true;
       } else {
-        console.error("Could not dynamically locate dev.db in /var/task");
+        console.error("Vercel SQLite Hack: Could not locate dev.db to copy.");
       }
     } catch (e) {
-      console.error("Failed to copy database to /tmp", e);
+      console.error("Vercel SQLite Hack: Failed to copy database to /tmp", e);
     }
   } else {
     useTmp = true;
