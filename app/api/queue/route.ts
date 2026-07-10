@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { NextResponse } from "next/server";
 import { getLiveQueue } from "@/lib/queue";
 import { requireAuth, apiSuccess } from "@/lib/api";
