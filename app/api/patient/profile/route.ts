@@ -11,6 +11,7 @@ const updateProfileSchema = z.object({
   email: z.string().email("Invalid email").optional(),
 });
 
+// PATCH /api/patient/profile — update profile
 export async function PATCH(req: NextRequest) {
   const session = await getPatientSessionFromRequest(req);
   if (!session) return apiError("Unauthorized", 401);

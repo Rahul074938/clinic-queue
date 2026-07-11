@@ -8,6 +8,7 @@ const verifyEmailSchema = z.object({
   code: z.string().length(6, "Code must be 6 digits"),
 });
 
+// POST /api/patient/profile/verify-email — verify new email
 export async function POST(req: NextRequest) {
   const session = await getPatientSessionFromRequest(req);
   if (!session) return apiError("Unauthorized", 401);

@@ -3,6 +3,7 @@ import { getPatientSessionFromRequest } from "@/lib/patient-auth";
 import { prisma } from "@/lib/prisma";
 import { apiError, apiSuccess } from "@/lib/api";
 
+// GET /api/patient/me — get profile details
 export async function GET(req: NextRequest) {
   const session = await getPatientSessionFromRequest(req);
   if (!session) return apiError("Unauthorized", 401);
