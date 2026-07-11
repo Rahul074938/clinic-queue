@@ -93,6 +93,60 @@ export async function POST(req: NextRequest) {
       },
       include: { doctor: true },
     });
+
+    // Send confirmation email
+    const { sendEmail } = await import("@/lib/email");
+    const formattedDate = new Date(appointment.scheduledAt).toLocaleDateString("en-US", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+    const formattedTime = new Date(appointment.scheduledAt).toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
+    await sendEmail({
+      to: appointment.patientEmail,
+      subject: "Your Appointment Confirmation - ClinicQueue",
+      html: `
+        <div style="font-family: sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 10px;">
+          <h2 style="color: #0d9488; margin-top: 0;">Appointment Confirmed!</h2>
+          <p>Hello <strong>${appointment.patientName}</strong>,</p>
+          <p>Your appointment has been successfully scheduled. Here are the details:</p>
+          
+          <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 15px; margin: 20px 0;">
+            <table style="width: 100%; border-collapse: collapse;">
+              <tr>
+                <td style="padding: 4px 0; font-weight: bold; color: #475569; width: 100px;">Doctor:</td>
+                <td style="padding: 4px 0; color: #0f172a;">${appointment.doctor.name} (${appointment.doctor.specialty})</td>
+              </tr>
+              <tr>
+                <td style="padding: 4px 0; font-weight: bold; color: #475569;">Room:</td>
+                <td style="padding: 4px 0; color: #0f172a; font-family: monospace; font-weight: bold;">${appointment.doctor.room}</td>
+              </tr>
+              <tr>
+                <td style="padding: 4px 0; font-weight: bold; color: #475569;">Date:</td>
+                <td style="padding: 4px 0; color: #0f172a;">${formattedDate}</td>
+              </tr>
+              <tr>
+                <td style="padding: 4px 0; font-weight: bold; color: #475569;">Time:</td>
+                <td style="padding: 4px 0; color: #0f172a;">${formattedTime}</td>
+              </tr>
+            </table>
+          </div>
+
+          <div style="background-color: #f0fdfa; border: 1px solid #99f6e4; border-radius: 8px; padding: 15px; text-align: center; margin: 20px 0;">
+            <p style="margin: 0 0 8px 0; font-size: 12px; font-weight: bold; color: #0f766e; text-transform: uppercase; letter-spacing: 0.05em;">Your Arrival Check-In Token</p>
+            <p style="margin: 0; font-size: 22px; font-family: monospace; font-weight: bold; color: #0d9488; letter-spacing: 2px;">${appointment.checkInToken}</p>
+          </div>
+
+          <p style="font-size: 13px; color: #64748b;">Please arrive 10 minutes prior to your appointment time and use your check-in token at the kiosk or from your phone to join the waitlist.</p>
+        </div>
+      `,
+    });
+
     return apiSuccess(appointment, 201);
   } catch (error: any) {
     console.error("Failed to create appointment on Vercel:", error);

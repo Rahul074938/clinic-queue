@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Stethoscope, Mail, Lock, Eye, EyeOff, ArrowRight, UserCircle2 } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, ArrowRight, UserCircle2 } from "lucide-react";
 
 export default function PatientLoginPage() {
   const router = useRouter();

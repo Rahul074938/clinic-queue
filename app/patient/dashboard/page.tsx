@@ -7,7 +7,7 @@ import {
   Calendar, Clock, Copy, CheckCircle2, XCircle, Loader2,
   Stethoscope, ArrowRight, ArrowLeft, User, Phone, Mail,
   FileText, LayoutDashboard, BookOpen, Ticket, AlertCircle,
-  BadgeCheck, RefreshCw,
+  BadgeCheck, RefreshCw, UserCheck, ShieldAlert,
 } from "lucide-react";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -42,6 +42,8 @@ interface PatientSession {
   id: string;
   email: string;
   name: string;
+  phone?: string;
+  pendingEmail?: string | null;
 }
 
 // ─── Status Helpers ───────────────────────────────────────────────────────────
@@ -83,7 +85,7 @@ const STATUS_CONFIG: Record<string, { label: string; color: string; icon: React.
 
 export default function PatientDashboard() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<"bookings" | "book">("bookings");
+  const [activeTab, setActiveTab] = useState<"bookings" | "book" | "profile">("bookings");
   const [session, setSession] = useState<PatientSession | null>(null);
 
   // Bookings state
@@ -109,19 +111,34 @@ export default function PatientDashboard() {
     scheduledAt: string;
   } | null>(null);
 
+  // Profile Edit State
+  const [profileName, setProfileName] = useState("");
+  const [profilePhone, setProfilePhone] = useState("");
+  const [profileEmail, setProfileEmail] = useState("");
+  const [profileVerifyCode, setProfileVerifyCode] = useState("");
+  const [updatingProfile, setUpdatingProfile] = useState(false);
+  const [verifyingEmail, setVerifyingEmail] = useState(false);
+
   // ─── Load session ──────────────────────────────────────────────────────────
-  useEffect(() => {
-    const fetchSession = async () => {
-      const res = await fetch("/api/patient/me");
-      if (res.ok) {
-        const data = await res.json() as PatientSession;
-        setSession(data);
-      } else {
-        router.replace("/patient/login");
-      }
-    };
-    void fetchSession();
+  const fetchSession = useCallback(async () => {
+    const res = await fetch("/api/patient/me");
+    if (res.ok) {
+      const data = await res.json() as PatientSession;
+      setSession(data);
+      
+      // Initialize profile form values
+      setProfileName(data.name);
+      setProfilePhone(data.phone || "");
+      setProfileEmail(data.email);
+      setPatientPhone(data.phone || "");
+    } else {
+      router.replace("/patient/login");
+    }
   }, [router]);
+
+  useEffect(() => {
+    void fetchSession();
+  }, [fetchSession]);
 
   // ─── Load appointments ─────────────────────────────────────────────────────
   const fetchAppointments = useCallback(async () => {
@@ -230,7 +247,7 @@ export default function PatientDashboard() {
       if (!res.ok) {
         toast.error(data.error ?? "Booking failed.");
       } else {
-        toast.success("Appointment booked!");
+        toast.success("Appointment booked! Details sent to your email.");
         setConfirmedBooking({
           id: data.id!,
           checkInToken: data.checkInToken!,
@@ -243,6 +260,69 @@ export default function PatientDashboard() {
       toast.error("Network error.");
     } finally {
       setBookingLoading(false);
+    }
+  };
+
+  // ─── Profile Update submit ────────────────────────────────────────────────
+  const handleProfileSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!session) return;
+    setUpdatingProfile(true);
+
+    try {
+      const res = await fetch("/api/patient/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: profileName,
+          phone: profilePhone,
+          email: profileEmail,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        toast.error(data.error ?? "Profile update failed.");
+      } else {
+        toast.success(
+          data.emailVerifyInitiated
+            ? "Profile updated. Verification code sent to new email address!"
+            : "Profile updated successfully!"
+        );
+        void fetchSession();
+      }
+    } catch {
+      toast.error("Failed to update profile.");
+    } finally {
+      setUpdatingProfile(false);
+    }
+  };
+
+  // ─── Email Verification submit ────────────────────────────────────────────
+  const handleVerifyEmailSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!profileVerifyCode) return;
+    setVerifyingEmail(true);
+
+    try {
+      const res = await fetch("/api/patient/profile/verify-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: profileVerifyCode }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        toast.error(data.error ?? "Verification failed.");
+      } else {
+        toast.success("Email address verified successfully!");
+        setProfileVerifyCode("");
+        void fetchSession();
+      }
+    } catch {
+      toast.error("Failed to verify email.");
+    } finally {
+      setVerifyingEmail(false);
     }
   };
 
@@ -262,7 +342,7 @@ export default function PatientDashboard() {
     setSelectedDoctor(null);
     setSelectedDate("");
     setSelectedTime("");
-    setPatientPhone("");
+    setPatientPhone(session?.phone || "");
     setNotes("");
     setConfirmedBooking(null);
   };
@@ -280,7 +360,7 @@ export default function PatientDashboard() {
             <h1 className="text-2xl sm:text-3xl font-extrabold text-white">
               Hello, <span className="bg-gradient-to-r from-teal-400 to-purple-400 bg-clip-text text-transparent">{session.name.split(" ")[0]}</span> 👋
             </h1>
-            <p className="text-sm text-slate-400 mt-1">Manage your clinic appointments in one place.</p>
+            <p className="text-sm text-slate-400 mt-1">Manage your clinic appointments and profile settings in one place.</p>
           </div>
         )}
 
@@ -307,6 +387,17 @@ export default function PatientDashboard() {
           >
             <BookOpen className="w-4 h-4" />
             Book Appointment
+          </button>
+          <button
+            onClick={() => setActiveTab("profile")}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition cursor-pointer ${
+              activeTab === "profile"
+                ? "bg-teal-400 text-slate-950 shadow"
+                : "text-slate-400 hover:text-white"
+            }`}
+          >
+            <UserCheck className="w-4 h-4" />
+            Profile Settings
           </button>
         </div>
 
@@ -567,7 +658,7 @@ export default function PatientDashboard() {
                     {selectedDate && (
                       <div>
                         <label className="block text-sm font-medium text-slate-300 mb-3">
-                          Available Slots
+                          Available Slots (9:00 AM - 12:00 PM)
                         </label>
                         {loadingSlots ? (
                           <div className="flex justify-center py-8">
@@ -586,7 +677,7 @@ export default function PatientDashboard() {
                                 className={`py-2 px-1 text-center text-xs font-semibold rounded-xl border transition cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed ${
                                   selectedTime === slot.time
                                     ? "bg-teal-400 border-teal-400 text-slate-950"
-                                    : "bg-slate-900 border-slate-800 hover:border-slate-600 hover:bg-slate-850"
+                                    : "bg-slate-900 border-slate-800 hover:border-slate-650 hover:bg-slate-850"
                                 }`}
                               >
                                 {slot.label}
@@ -632,7 +723,7 @@ export default function PatientDashboard() {
                     {/* Pre-filled from session — read only */}
                     <div className="p-4 bg-slate-950/50 border border-slate-800 rounded-xl">
                       <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider mb-3">
-                        Booking As (from your account)
+                        Booking As (linked to your account)
                       </p>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div className="flex items-center gap-2 text-sm text-slate-300">
@@ -710,7 +801,7 @@ export default function PatientDashboard() {
                   </div>
                   <h2 className="text-2xl font-bold text-white mb-2">Appointment Confirmed!</h2>
                   <p className="text-sm text-slate-400 mb-8 max-w-sm mx-auto">
-                    Your booking is confirmed. Use this token to check in when you arrive.
+                    Your booking is confirmed. We have sent the appointment details to your email address.
                   </p>
 
                   {/* Token display */}
@@ -751,6 +842,149 @@ export default function PatientDashboard() {
                   </div>
                 </div>
               )}
+            </div>
+          </div>
+        )}
+
+        {/* ═══════════════════════════ PROFILE SETTINGS TAB ═══════════════════════════ */}
+        {activeTab === "profile" && session && (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Edit details form */}
+            <div className="lg:col-span-2 bg-slate-900/50 border border-slate-800 rounded-2xl p-6 md:p-8">
+              <h2 className="text-xl font-bold text-white mb-2">Edit Profile Settings</h2>
+              <p className="text-xs text-slate-400 mb-6">Keep your contact details up to date.</p>
+
+              <form onSubmit={handleProfileSubmit} className="space-y-5">
+                {/* Full name */}
+                <div>
+                  <label htmlFor="profile-name" className="block text-sm font-medium text-slate-300 mb-1.5">
+                    Full Name
+                  </label>
+                  <div className="relative">
+                    <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-500">
+                      <User className="w-4.5 h-4.5" />
+                    </span>
+                    <input
+                      id="profile-name"
+                      type="text"
+                      required
+                      className="block w-full pl-10 pr-3 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm transition"
+                      value={profileName}
+                      onChange={(e) => setProfileName(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                {/* Phone */}
+                <div>
+                  <label htmlFor="profile-phone" className="block text-sm font-medium text-slate-300 mb-1.5">
+                    Phone Number
+                  </label>
+                  <div className="relative">
+                    <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-500">
+                      <Phone className="w-4.5 h-4.5" />
+                    </span>
+                    <input
+                      id="profile-phone"
+                      type="tel"
+                      className="block w-full pl-10 pr-3 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm transition"
+                      value={profilePhone}
+                      onChange={(e) => setProfilePhone(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                {/* Email Address */}
+                <div>
+                  <label htmlFor="profile-email" className="block text-sm font-medium text-slate-300 mb-1.5">
+                    Email Address
+                  </label>
+                  <div className="relative">
+                    <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-500">
+                      <Mail className="w-4.5 h-4.5" />
+                    </span>
+                    <input
+                      id="profile-email"
+                      type="email"
+                      required
+                      className="block w-full pl-10 pr-3 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm transition"
+                      value={profileEmail}
+                      onChange={(e) => setProfileEmail(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={updatingProfile}
+                  className="flex items-center justify-center gap-2 py-3 px-6 rounded-xl text-sm font-semibold text-slate-950 bg-teal-400 hover:bg-teal-300 transition cursor-pointer disabled:opacity-50 w-full sm:w-auto"
+                >
+                  {updatingProfile ? (
+                    <><Loader2 className="w-4 h-4 animate-spin" /> Saving...</>
+                  ) : (
+                    "Save Profile Details"
+                  )}
+                </button>
+              </form>
+            </div>
+
+            {/* Email verification alert/flow sidebar */}
+            <div className="space-y-6">
+              {session.pendingEmail && (
+                <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-2xl p-6">
+                  <div className="flex items-start gap-3 mb-4">
+                    <ShieldAlert className="w-5 h-5 text-yellow-400 shrink-0 mt-0.5" />
+                    <div>
+                      <h3 className="font-bold text-yellow-400 text-sm">Verify New Email</h3>
+                      <p className="text-xs text-slate-300 mt-1">
+                        We sent a 6-digit verification code to <strong>{session.pendingEmail}</strong>. Enter it below to complete your email change.
+                      </p>
+                    </div>
+                  </div>
+
+                  <form onSubmit={handleVerifyEmailSubmit} className="space-y-4">
+                    <div>
+                      <input
+                        type="text"
+                        maxLength={6}
+                        required
+                        placeholder="123456"
+                        className="block w-full text-center tracking-widest font-mono text-lg py-2 bg-slate-950 border border-slate-700 rounded-xl text-white placeholder-slate-700 focus:outline-none focus:ring-2 focus:ring-yellow-500 transition"
+                        value={profileVerifyCode}
+                        onChange={(e) => setProfileVerifyCode(e.target.value.replace(/\D/g, ""))}
+                      />
+                    </div>
+                    <button
+                      type="submit"
+                      disabled={verifyingEmail}
+                      className="w-full flex items-center justify-center gap-2 py-2 px-4 rounded-xl text-xs font-semibold text-slate-950 bg-yellow-400 hover:bg-yellow-300 transition cursor-pointer disabled:opacity-50"
+                    >
+                      {verifyingEmail ? (
+                        <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Verifying...</>
+                      ) : (
+                        "Verify and Update Email"
+                      )}
+                    </button>
+                  </form>
+                </div>
+              )}
+
+              {/* Account Status Card */}
+              <div className="bg-slate-900/40 border border-slate-800 rounded-2xl p-6">
+                <h3 className="font-bold text-white text-sm mb-4">Account Status</h3>
+                <div className="space-y-3 text-xs">
+                  <div className="flex justify-between border-b border-slate-800 pb-2">
+                    <span className="text-slate-400">Current Login Email</span>
+                    <span className="text-slate-200 font-semibold truncate max-w-[150px]">{session.email}</span>
+                  </div>
+                  <div className="flex justify-between border-b border-slate-800 pb-2">
+                    <span className="text-slate-400">Verified Email Status</span>
+                    <span className="text-emerald-400 font-semibold flex items-center gap-1">
+                      <CheckCircle2 className="w-3 h-3" /> Active
+                    </span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         )}
