@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { toast } from "sonner";
-import { Stethoscope, Key, Mail, Lock, Eye, EyeOff } from "lucide-react";
+import { Stethoscope, Key, Mail, Lock, Eye, EyeOff, Home } from "lucide-react";
 
 export default function LoginForm() {
   const router = useRouter();
@@ -67,7 +67,18 @@ export default function LoginForm() {
   };
 
   return (
-    <div className="flex-1 flex flex-col justify-center items-center px-4 py-12 sm:px-6 lg:px-8 bg-slate-900 text-slate-100">
+    <div className="flex-1 flex flex-col justify-center items-center px-4 py-12 sm:px-6 lg:px-8 bg-slate-900 text-slate-100 min-h-screen relative">
+      {/* Top Navigation Back to Home */}
+      <div className="absolute top-6 left-6 z-20">
+        <a
+          href="/"
+          className="flex items-center gap-2 text-xs font-semibold text-slate-400 hover:text-white bg-slate-950/60 hover:bg-slate-950 border border-slate-800 hover:border-slate-700 px-3.5 py-2 rounded-xl transition"
+        >
+          <Home className="w-3.5 h-3.5" />
+          <span>Home Dashboard</span>
+        </a>
+      </div>
+
       {/* Clinic Brand */}
       <div className="flex items-center gap-2 mb-8">
         <div className="p-2 bg-teal-500/20 text-teal-400 rounded-xl border border-teal-500/30">

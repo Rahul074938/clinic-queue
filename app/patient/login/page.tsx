@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Mail, Lock, Eye, EyeOff, ArrowRight, UserCircle2 } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, ArrowRight, UserCircle2, Home } from "lucide-react";
 
 export default function PatientLoginPage() {
   const router = useRouter();
@@ -42,7 +42,18 @@ export default function PatientLoginPage() {
   };
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-center px-4 py-16 bg-slate-950">
+    <div className="flex-1 flex flex-col items-center justify-center px-4 py-16 bg-slate-950 min-h-screen relative">
+      {/* Top Navigation Back to Home */}
+      <div className="absolute top-6 left-6 z-20">
+        <a
+          href="/"
+          className="flex items-center gap-2 text-xs font-semibold text-slate-400 hover:text-white bg-slate-900/60 hover:bg-slate-900 border border-slate-800 hover:border-slate-700 px-3.5 py-2 rounded-xl transition"
+        >
+          <Home className="w-3.5 h-3.5" />
+          <span>Home Dashboard</span>
+        </a>
+      </div>
+
       {/* Neon glow */}
       <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-teal-500/8 blur-[100px] rounded-full pointer-events-none" />
       <div className="absolute top-1/2 left-1/3 w-[250px] h-[250px] bg-purple-500/8 blur-[80px] rounded-full pointer-events-none" />
