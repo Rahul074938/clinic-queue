@@ -11,11 +11,7 @@ const DOCTORS = [
   { name: "Dr. Aisha Patel", specialty: "Dermatology", room: "Room 5", avatarColor: "#ef4444" },
 ];
 
-const PATIENT_NAMES = [
-  "Alice Johnson", "Bob Martinez", "Carol Williams", "David Brown",
-  "Emma Davis", "Frank Wilson", "Grace Lee", "Henry Taylor",
-  "Isabella Anderson", "Jack Thomas",
-];
+
 
 async function main() {
   console.log("🌱 Seeding database...");
@@ -63,7 +59,7 @@ async function main() {
   });
 
   // Create doctors
-  const doctors = await Promise.all(
+  await Promise.all(
     DOCTORS.map((d) =>
       prisma.doctor.upsert({
         where: { id: d.name.toLowerCase().replace(/\s/g, "-") },

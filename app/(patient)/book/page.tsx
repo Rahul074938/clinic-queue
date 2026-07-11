@@ -114,8 +114,8 @@ export default function BookingPage() {
 
   const handleBookingSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!patientName || !patientPhone || !patientEmail) {
-      toast.error("Please fill in all required fields.");
+    if (!patientName || !patientPhone || !patientEmail || !notes.trim()) {
+      toast.error("Please fill in all required fields including Reason for Visit.");
       return;
     }
 
@@ -418,7 +418,7 @@ export default function BookingPage() {
 
                 <div>
                   <label htmlFor="notes" className="block text-sm font-medium text-slate-300 mb-1">
-                    Notes for Doctor (Optional)
+                    Reason for Visit
                   </label>
                   <div className="relative">
                     <span className="absolute top-3 left-3 text-slate-500">
@@ -427,6 +427,7 @@ export default function BookingPage() {
                     <textarea
                       id="notes"
                       rows={3}
+                      required
                       className="block w-full pl-10 pr-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm resize-none"
                       placeholder="Briefly describe the reason for your visit..."
                       value={notes}

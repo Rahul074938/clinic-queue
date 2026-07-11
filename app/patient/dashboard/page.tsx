@@ -227,6 +227,10 @@ export default function PatientDashboard() {
       toast.error("Please enter your phone number.");
       return;
     }
+    if (!notes.trim()) {
+      toast.error("Please enter the reason for your visit.");
+      return;
+    }
 
     setBookingLoading(true);
     try {
@@ -761,7 +765,7 @@ export default function PatientDashboard() {
                     {/* Notes */}
                     <div>
                       <label htmlFor="notes" className="block text-sm font-medium text-slate-300 mb-1.5">
-                        Notes for Doctor <span className="text-slate-600 font-normal">(optional)</span>
+                        Reason for Visit
                       </label>
                       <div className="relative">
                         <span className="absolute top-3 left-3 text-slate-500">
@@ -770,8 +774,9 @@ export default function PatientDashboard() {
                         <textarea
                           id="notes"
                           rows={3}
+                          required
                           className="block w-full pl-10 pr-3 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm resize-none"
-                          placeholder="Briefly describe your reason for visit..."
+                          placeholder="Briefly describe the reason for your visit..."
                           value={notes}
                           onChange={(e) => setNotes(e.target.value)}
                         />

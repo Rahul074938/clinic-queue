@@ -6,7 +6,7 @@ export const createAppointmentSchema = z.object({
   patientEmail: z.string().email("Invalid email address"),
   doctorId: z.string().min(1, "Please select a doctor"),
   scheduledAt: z.string().datetime("Invalid date/time"),
-  notes: z.string().max(500).optional(),
+  notes: z.string().min(1, "Reason for visit is required").max(500),
 });
 
 export const updateAppointmentSchema = z.object({
