@@ -73,47 +73,7 @@ async function main() {
     )
   );
 
-  // Create today's appointments with various statuses
-  const today = new Date();
-  today.setHours(8, 0, 0, 0);
-
-  const statuses: Array<"SCHEDULED" | "CHECKED_IN" | "IN_PROGRESS" | "COMPLETED"> = [
-    "COMPLETED", "COMPLETED", "IN_PROGRESS", "CHECKED_IN",
-    "CHECKED_IN", "SCHEDULED", "SCHEDULED", "SCHEDULED",
-    "SCHEDULED", "SCHEDULED",
-  ];
-
-  for (let i = 0; i < PATIENT_NAMES.length; i++) {
-    const name = PATIENT_NAMES[i]!;
-    const doctor = doctors[i % doctors.length]!;
-    const status = statuses[i]!;
-    const slotTime = new Date(today);
-    slotTime.setMinutes(i * 15);
-
-    const checkInTime = ["CHECKED_IN", "IN_PROGRESS", "COMPLETED"].includes(status)
-      ? new Date(slotTime.getTime() + 5 * 60000)
-      : null;
-    const calledAt = ["IN_PROGRESS", "COMPLETED"].includes(status)
-      ? new Date(slotTime.getTime() + 20 * 60000)
-      : null;
-    const completedAt = status === "COMPLETED"
-      ? new Date(slotTime.getTime() + 35 * 60000)
-      : null;
-
-    await prisma.appointment.create({
-      data: {
-        patientName: name,
-        patientPhone: `+1 555-${String(1000 + i).padStart(4, "0")}`,
-        patientEmail: `${name.toLowerCase().replace(" ", ".")}@example.com`,
-        doctorId: doctor.id,
-        scheduledAt: slotTime,
-        status,
-        checkInTime,
-        calledAt,
-        completedAt,
-      },
-    });
-  }
+  // Seeding doctors complete (No sample appointments seeded per request)
 
   console.log("✅ Seed complete!");
   console.log("\n📋 Demo credentials:");
