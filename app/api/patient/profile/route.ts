@@ -11,6 +11,31 @@ const updateProfileSchema = z.object({
   email: z.string().email("Invalid email").optional(),
 });
 
+function formatPhoneNumber(phone: string): string {
+  let cleaned = phone.trim();
+  if (!cleaned) return "";
+
+  // Extract only digits
+  const digits = cleaned.replace(/\D/g, "");
+
+  // If it's a 10-digit number, format as +91XXXXXXXXXX
+  if (digits.length === 10) {
+    return `+91${digits}`;
+  }
+  
+  // If it starts with 91 and is 12-digits, format as +91XXXXXXXXXX
+  if (digits.length === 12 && digits.startsWith("91")) {
+    return `+${digits}`;
+  }
+
+  // If it doesn't start with +, prefix it with +
+  if (!cleaned.startsWith("+")) {
+    return `+${cleaned}`;
+  }
+
+  return cleaned;
+}
+
 // PATCH /api/patient/profile — update profile
 export async function PATCH(req: NextRequest) {
   const session = await getPatientSessionFromRequest(req);
@@ -22,7 +47,10 @@ export async function PATCH(req: NextRequest) {
     return apiError(parsed.error.issues[0]?.message ?? "Invalid input");
   }
 
-  const { name, phone, email } = parsed.data;
+  let { name, phone, email } = parsed.data;
+  if (phone !== undefined) {
+    phone = formatPhoneNumber(phone);
+  }
 
   // Fetch current user details
   const db = prisma as any;
@@ -108,5 +136,7 @@ export async function PATCH(req: NextRequest) {
     patient: updatedPatient,
     emailVerifyInitiated,
     phoneVerifyInitiated,
+    demoEmailCode: emailVerifyInitiated ? updateData.emailVerifyCode : undefined,
+    demoPhoneOtp: phoneVerifyInitiated ? updateData.phoneVerifyCode : undefined,
   });
 }

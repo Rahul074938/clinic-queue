@@ -121,6 +121,8 @@ export default function PatientDashboard() {
   const [updatingProfile, setUpdatingProfile] = useState(false);
   const [verifyingEmail, setVerifyingEmail] = useState(false);
   const [verifyingPhone, setVerifyingPhone] = useState(false);
+  const [activeDemoEmailCode, setActiveDemoEmailCode] = useState<string | null>(null);
+  const [activeDemoPhoneOtp, setActiveDemoPhoneOtp] = useState<string | null>(null);
 
   // ─── Load session ──────────────────────────────────────────────────────────
   const fetchSession = useCallback(async () => {
@@ -131,7 +133,7 @@ export default function PatientDashboard() {
       
       // Initialize profile form values
       setProfileName(data.name);
-      setProfilePhone(data.phone || "");
+      setProfilePhone(data.phone || "+91");
       setProfileEmail(data.email);
     } else {
       router.replace("/patient/login");
@@ -290,6 +292,9 @@ export default function PatientDashboard() {
       if (!res.ok) {
         toast.error(data.error ?? "Profile update failed.");
       } else {
+        if (data.demoEmailCode) setActiveDemoEmailCode(data.demoEmailCode);
+        if (data.demoPhoneOtp) setActiveDemoPhoneOtp(data.demoPhoneOtp);
+
         if (data.emailVerifyInitiated && data.phoneVerifyInitiated) {
           toast.success("Profile updated. Verification codes sent to both new email and phone!");
         } else if (data.emailVerifyInitiated) {
@@ -327,6 +332,7 @@ export default function PatientDashboard() {
       } else {
         toast.success("Email address verified successfully!");
         setProfileVerifyCode("");
+        setActiveDemoEmailCode(null);
         void fetchSession();
       }
     } catch {
@@ -355,6 +361,7 @@ export default function PatientDashboard() {
       } else {
         toast.success("Phone number verified successfully!");
         setProfilePhoneVerifyCode("");
+        setActiveDemoPhoneOtp(null);
         void fetchSession();
       }
     } catch {
@@ -986,6 +993,11 @@ export default function PatientDashboard() {
                         value={profileVerifyCode}
                         onChange={(e) => setProfileVerifyCode(e.target.value.replace(/\D/g, ""))}
                       />
+                      {activeDemoEmailCode && (
+                        <p className="text-[11px] text-yellow-400 font-semibold mt-2 text-center">
+                          Demo Verification Code: {activeDemoEmailCode}
+                        </p>
+                      )}
                     </div>
                     <button
                       type="submit"
@@ -1009,7 +1021,7 @@ export default function PatientDashboard() {
                     <div>
                       <h3 className="font-bold text-teal-400 text-sm">Verify Phone OTP</h3>
                       <p className="text-xs text-slate-300 mt-1">
-                        We sent a 6-digit OTP to <strong>{session.pendingPhone}</strong>. Check your console log to retrieve it.
+                        We sent a 6-digit OTP to <strong>{session.pendingPhone}</strong>. Check your console log or copy it below.
                       </p>
                     </div>
                   </div>
@@ -1025,6 +1037,11 @@ export default function PatientDashboard() {
                         value={profilePhoneVerifyCode}
                         onChange={(e) => setProfilePhoneVerifyCode(e.target.value.replace(/\D/g, ""))}
                       />
+                      {activeDemoPhoneOtp && (
+                        <p className="text-[11px] text-teal-400 font-semibold mt-2 text-center">
+                          Demo OTP Code: {activeDemoPhoneOtp}
+                        </p>
+                      )}
                     </div>
                     <button
                       type="submit"
