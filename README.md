@@ -7,17 +7,28 @@
 ## ✨ Features
 
 ### For Patients
-- **Self-booking** — multi-step wizard: doctor → date/time → patient info → confirmation with token
-- **Digital check-in** — token-based self-service from phone or clinic tablet
-- **Live queue tracker** — SSE-powered real-time queue position + estimated wait time with audio alert on call
-- **Kiosk mode** — full-screen tablet check-in with 15-second auto-reset
+- **Patient Portal & Auth** — Secure patient login/register flow using custom JWT.
+- **Secure Self-booking** — Multi-step wizard limited to registered patient sessions. No public booking links on dashboard.
+- **Reason for Visit** — Compulsory field validated on booking.
+- **Restricted Time Slots** — Scheduled booking hours limited to 9:00 AM - 12:00 PM (15-minute intervals).
+- **Time Slot Capacities** — Cap of 2 patients per slot. Slots are color-coded in real-time (Green: 0 booked, Orange: 1 booked/1 left, Red: 2 booked/blocked).
+- **Phone & Email OTP Verification** — Edit profile details (name, email, phone) with 6-digit verification code. Sends verification to new email (Resend) and new phone (Mock SMS). Exposes demo OTP code directly in UI helper tags.
+- **Indian Phone Defaults** — Indian phone numbers starting with 10 digits are automatically formatted with the `+91` prefix.
+- **Digital check-in** — Token-based self-service from phone or clinic tablet.
+- **Live queue tracker** — SSE-powered real-time queue position + estimated wait time with audio alert on call.
+- **Kiosk mode** — Full-screen tablet check-in with 15-second auto-reset.
 
 ### For Staff / Admin
-- **Live Queue Dashboard** — call next, mark complete / no-show / cancel per entry
-- **Appointments table** — search, filter by status/doctor/date, sortable columns, bulk soft-delete, CSV export
-- **Doctors directory** — add / activate / deactivate physicians with room assignments
-- **Analytics** — 7-day patient volume chart, wait-time trend, per-physician workload table
-- **Lobby TV board** — public display with privacy-masked names, "Now Calling" overlay, chime alert
+- **Live Queue Dashboard** — Call next, mark complete / no-show / cancel per entry.
+- **Appointments table** — Search, filter by status/doctor/date, sortable columns, bulk soft-delete, CSV export.
+- **Doctors directory** — Add / activate / deactivate physicians with room assignments.
+- **Analytics** — 7-day patient volume chart, wait-time trend, per-physician workload table.
+- **Lobby TV board** — Public display with privacy-masked names, "Now Calling" overlay, chime alert.
+
+### Global UX Improvements
+- **Global Theme Switcher** — A floating bottom-right theme switcher button to swap the entire layout between Dark and Light mode.
+- **Back-to-Home Links** — Navigation buttons on the patient and staff login pages to quickly go back to the home page dashboard.
+
 
 ---
 
