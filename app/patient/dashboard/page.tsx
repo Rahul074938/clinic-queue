@@ -7,7 +7,7 @@ import {
   Calendar, Clock, Copy, CheckCircle2, XCircle, Loader2,
   Stethoscope, ArrowRight, ArrowLeft, User, Phone, Mail,
   FileText, LayoutDashboard, BookOpen, Ticket, AlertCircle,
-  BadgeCheck, RefreshCw, UserCheck, ShieldAlert, Sun, Moon, LogOut
+  BadgeCheck, RefreshCw, UserCheck, ShieldAlert, LogOut
 } from "lucide-react";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -125,31 +125,7 @@ export default function PatientDashboard() {
   const [activeDemoEmailCode, setActiveDemoEmailCode] = useState<string | null>(null);
   const [activeDemoPhoneOtp, setActiveDemoPhoneOtp] = useState<string | null>(null);
 
-  // Theme Toggle State
-  const [theme, setTheme] = useState<"light" | "dark">("dark");
 
-  useEffect(() => {
-    const saved = localStorage.getItem("theme") as "light" | "dark" | null;
-    if (saved === "light") {
-      setTheme("light");
-      document.documentElement.classList.add("light");
-    } else {
-      setTheme("dark");
-      document.documentElement.classList.remove("light");
-    }
-  }, []);
-
-  const toggleTheme = () => {
-    if (theme === "dark") {
-      setTheme("light");
-      document.documentElement.classList.add("light");
-      localStorage.setItem("theme", "light");
-    } else {
-      setTheme("dark");
-      document.documentElement.classList.remove("light");
-      localStorage.setItem("theme", "dark");
-    }
-  };
 
   const handleLogout = async () => {
     try {
@@ -449,14 +425,7 @@ export default function PatientDashboard() {
           </div>
 
           <div className="flex items-center gap-3">
-            {/* Theme switcher */}
-            <button
-              onClick={toggleTheme}
-              className="p-2 bg-slate-900 border border-slate-800 rounded-xl text-slate-400 hover:text-white transition cursor-pointer"
-              title={theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
-            >
-              {theme === "dark" ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-indigo-400" />}
-            </button>
+
 
             {/* Logout button */}
             <button
