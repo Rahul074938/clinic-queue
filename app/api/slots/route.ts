@@ -22,9 +22,9 @@ export async function GET(req: NextRequest) {
   if (!doctor) return apiError("Doctor not found", 404);
 
   const dayStart = new Date(date);
-  dayStart.setHours(8, 0, 0, 0);
+  dayStart.setHours(9, 0, 0, 0);
   const dayEnd = new Date(date);
-  dayEnd.setHours(17, 0, 0, 0);
+  dayEnd.setHours(12, 0, 0, 0);
 
   const existing = await prisma.appointment.findMany({
     where: {
@@ -43,7 +43,7 @@ export async function GET(req: NextRequest) {
     })
   );
 
-  const allSlots = generateTimeSlots(8, 17, SLOT_DURATION_MINUTES);
+  const allSlots = generateTimeSlots(9, 12, SLOT_DURATION_MINUTES);
   const now = new Date();
   const selectedDate = new Date(date);
   const isToday = selectedDate.toDateString() === now.toDateString();

@@ -16,7 +16,7 @@ export default function Home() {
             </span>
           </div>
 
-          <nav className="flex items-center gap-4">
+          <nav className="flex items-center gap-3">
             <a
               href="/auth/login"
               className="text-sm font-semibold text-slate-400 hover:text-white transition"
@@ -24,12 +24,13 @@ export default function Home() {
               Staff Sign In
             </a>
             <a
-              href="/book"
+              href="/patient/login"
               className="text-sm font-semibold text-slate-950 bg-teal-400 hover:bg-teal-300 px-4 py-2 rounded-lg transition"
             >
-              Book Now
+              Patient Login
             </a>
           </nav>
+
         </div>
       </header>
 
@@ -61,9 +62,9 @@ export default function Home() {
               {/* Action Cards */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-left max-w-4xl mx-auto mb-16">
                 
-                {/* Book */}
+                {/* Patient Portal */}
                 <a
-                  href="/book"
+                  href="/patient/login"
                   className="group p-6 rounded-2xl bg-slate-900/60 border border-slate-800 hover:border-teal-500/50 hover:bg-slate-900/80 transition flex flex-col justify-between min-h-[160px]"
                 >
                   <div>
@@ -71,10 +72,10 @@ export default function Home() {
                       <Calendar className="w-5 h-5" />
                     </div>
                     <h3 className="font-bold text-lg text-white mb-1">Patient Scheduling</h3>
-                    <p className="text-xs text-slate-400">Book virtual or in-person visits with doctors</p>
+                    <p className="text-xs text-slate-400">Sign in to book visits and manage your appointments</p>
                   </div>
                   <div className="flex items-center gap-1 text-xs font-semibold text-teal-400 mt-4 group-hover:translate-x-1 transition duration-200">
-                    <span>Schedule Appt</span>
+                    <span>Patient Login</span>
                     <ChevronRight className="w-3.5 h-3.5" />
                   </div>
                 </a>
@@ -190,7 +191,7 @@ export default function Home() {
           <div className="flex gap-4 text-xs font-semibold text-slate-400">
             <a href="/auth/login" className="hover:text-white transition">Staff Sign In</a>
             <span className="text-slate-800">|</span>
-            <a href="/book" className="hover:text-white transition">Booking Portal</a>
+            <a href="/patient/login" className="hover:text-white transition">Patient Portal</a>
             <span className="text-slate-800">|</span>
             <a href="/checkin" className="hover:text-white transition">Check-In</a>
           </div>

@@ -3,7 +3,7 @@
 import { useSession, signOut } from "next-auth/react";
 import { useRouter, usePathname } from "next/navigation";
 import { useState, useEffect, type ReactNode } from "react";
-import { Stethoscope, LayoutDashboard, Calendar, Users, BarChart3, LogOut, Menu, X, User } from "lucide-react";
+import { Stethoscope, LayoutDashboard, Calendar, Users, BarChart3, LogOut, Menu, X, User, Search } from "lucide-react";
 import { toast } from "sonner";
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
@@ -37,6 +37,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     { name: "Appointments", href: "/admin/appointments", icon: Calendar },
     { name: "Doctors", href: "/admin/doctors", icon: Users, adminOnly: true },
     { name: "Analytics", href: "/admin/analytics", icon: BarChart3 },
+    { name: "Patient Lookup", href: "/admin/patient-lookup", icon: Search },
   ];
 
   const userRole = (session?.user as { role?: string } | undefined)?.role ?? "STAFF";
