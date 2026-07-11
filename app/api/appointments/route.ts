@@ -147,6 +147,15 @@ export async function POST(req: NextRequest) {
       `,
     });
 
+    // Send confirmation SMS
+    if (appointment.patientPhone) {
+      const { sendSms } = await import("@/lib/sms");
+      await sendSms({
+        to: appointment.patientPhone,
+        message: `Hello ${appointment.patientName}, your appointment with ${appointment.doctor.name} is confirmed for ${formattedDate} at ${formattedTime} in ${appointment.doctor.room}. Check-in token: ${appointment.checkInToken}`,
+      });
+    }
+
     return apiSuccess(appointment, 201);
   } catch (error: any) {
     console.error("Failed to create appointment on Vercel:", error);

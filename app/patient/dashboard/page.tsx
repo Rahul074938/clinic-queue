@@ -44,6 +44,7 @@ interface PatientSession {
   name: string;
   phone?: string;
   pendingEmail?: string | null;
+  pendingPhone?: string | null;
 }
 
 // ─── Status Helpers ───────────────────────────────────────────────────────────
@@ -103,7 +104,7 @@ export default function PatientDashboard() {
   const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState("");
-  const [patientPhone, setPatientPhone] = useState("");
+
   const [notes, setNotes] = useState("");
   const [confirmedBooking, setConfirmedBooking] = useState<{
     id: string;
@@ -116,8 +117,10 @@ export default function PatientDashboard() {
   const [profilePhone, setProfilePhone] = useState("");
   const [profileEmail, setProfileEmail] = useState("");
   const [profileVerifyCode, setProfileVerifyCode] = useState("");
+  const [profilePhoneVerifyCode, setProfilePhoneVerifyCode] = useState("");
   const [updatingProfile, setUpdatingProfile] = useState(false);
   const [verifyingEmail, setVerifyingEmail] = useState(false);
+  const [verifyingPhone, setVerifyingPhone] = useState(false);
 
   // ─── Load session ──────────────────────────────────────────────────────────
   const fetchSession = useCallback(async () => {
@@ -130,7 +133,6 @@ export default function PatientDashboard() {
       setProfileName(data.name);
       setProfilePhone(data.phone || "");
       setProfileEmail(data.email);
-      setPatientPhone(data.phone || "");
     } else {
       router.replace("/patient/login");
     }
@@ -223,8 +225,8 @@ export default function PatientDashboard() {
   const handleBookingSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!session || !selectedDoctor || !selectedDate || !selectedTime) return;
-    if (!patientPhone) {
-      toast.error("Please enter your phone number.");
+    if (!session.phone) {
+      toast.error("Please add and verify your phone number in Profile Settings first.");
       return;
     }
     if (!notes.trim()) {
@@ -240,7 +242,7 @@ export default function PatientDashboard() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           patientName: session.name,
-          patientPhone,
+          patientPhone: session.phone,
           patientEmail: session.email,
           doctorId: selectedDoctor.id,
           scheduledAt: scheduledDateTime.toISOString(),
@@ -288,11 +290,15 @@ export default function PatientDashboard() {
       if (!res.ok) {
         toast.error(data.error ?? "Profile update failed.");
       } else {
-        toast.success(
-          data.emailVerifyInitiated
-            ? "Profile updated. Verification code sent to new email address!"
-            : "Profile updated successfully!"
-        );
+        if (data.emailVerifyInitiated && data.phoneVerifyInitiated) {
+          toast.success("Profile updated. Verification codes sent to both new email and phone!");
+        } else if (data.emailVerifyInitiated) {
+          toast.success("Profile updated. Verification code sent to new email address!");
+        } else if (data.phoneVerifyInitiated) {
+          toast.success("Profile updated. Verification OTP sent to new phone number!");
+        } else {
+          toast.success("Profile updated successfully!");
+        }
         void fetchSession();
       }
     } catch {
@@ -330,6 +336,34 @@ export default function PatientDashboard() {
     }
   };
 
+  // ─── Phone Verification submit ────────────────────────────────────────────
+  const handleVerifyPhoneSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!profilePhoneVerifyCode) return;
+    setVerifyingPhone(true);
+
+    try {
+      const res = await fetch("/api/patient/profile/verify-phone", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: profilePhoneVerifyCode }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        toast.error(data.error ?? "Verification failed.");
+      } else {
+        toast.success("Phone number verified successfully!");
+        setProfilePhoneVerifyCode("");
+        void fetchSession();
+      }
+    } catch {
+      toast.error("Failed to verify phone number.");
+    } finally {
+      setVerifyingPhone(false);
+    }
+  };
+
   const copyToken = (token: string) => {
     void navigator.clipboard.writeText(token);
     toast.success("Check-in token copied!");
@@ -346,7 +380,6 @@ export default function PatientDashboard() {
     setSelectedDoctor(null);
     setSelectedDate("");
     setSelectedTime("");
-    setPatientPhone(session?.phone || "");
     setNotes("");
     setConfirmedBooking(null);
   };
@@ -729,7 +762,7 @@ export default function PatientDashboard() {
                       <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider mb-3">
                         Booking As (linked to your account)
                       </p>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         <div className="flex items-center gap-2 text-sm text-slate-300">
                           <User className="w-4 h-4 text-slate-500" />
                           <span>{session.name}</span>
@@ -738,29 +771,24 @@ export default function PatientDashboard() {
                           <Mail className="w-4 h-4 text-slate-500" />
                           <span className="truncate">{session.email}</span>
                         </div>
+                        <div className="flex items-center gap-2 text-sm text-slate-300">
+                          <Phone className="w-4 h-4 text-slate-500" />
+                          <span className="truncate">{session.phone || "No verified phone"}</span>
+                        </div>
                       </div>
                     </div>
 
-                    {/* Phone */}
-                    <div>
-                      <label htmlFor="phone" className="block text-sm font-medium text-slate-300 mb-1.5">
-                        Phone Number
-                      </label>
-                      <div className="relative">
-                        <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-500">
-                          <Phone className="w-4 h-4" />
-                        </span>
-                        <input
-                          id="phone"
-                          type="tel"
-                          required
-                          className="block w-full pl-10 pr-3 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm"
-                          placeholder="+1 555-0199"
-                          value={patientPhone}
-                          onChange={(e) => setPatientPhone(e.target.value)}
-                        />
+                    {!session.phone && (
+                      <div className="p-4 bg-red-500/10 border border-red-500/35 rounded-xl flex items-start gap-3">
+                        <AlertCircle className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
+                        <div>
+                          <p className="text-xs font-bold text-red-400">Verified Phone Number Required</p>
+                          <p className="text-[11px] text-slate-300 mt-1 leading-relaxed">
+                            You must link and verify your phone number under the <strong>Profile Settings</strong> tab before booking an appointment.
+                          </p>
+                        </div>
                       </div>
-                    </div>
+                    )}
 
                     {/* Notes */}
                     <div>
@@ -968,6 +996,45 @@ export default function PatientDashboard() {
                         <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Verifying...</>
                       ) : (
                         "Verify and Update Email"
+                      )}
+                    </button>
+                  </form>
+                </div>
+              )}
+
+              {session.pendingPhone && (
+                <div className="bg-teal-500/10 border border-teal-500/30 rounded-2xl p-6">
+                  <div className="flex items-start gap-3 mb-4">
+                    <ShieldAlert className="w-5 h-5 text-teal-400 shrink-0 mt-0.5" />
+                    <div>
+                      <h3 className="font-bold text-teal-400 text-sm">Verify Phone OTP</h3>
+                      <p className="text-xs text-slate-300 mt-1">
+                        We sent a 6-digit OTP to <strong>{session.pendingPhone}</strong>. Check your console log to retrieve it.
+                      </p>
+                    </div>
+                  </div>
+
+                  <form onSubmit={handleVerifyPhoneSubmit} className="space-y-4">
+                    <div>
+                      <input
+                        type="text"
+                        maxLength={6}
+                        required
+                        placeholder="123456"
+                        className="block w-full text-center tracking-widest font-mono text-lg py-2 bg-slate-950 border border-slate-700 rounded-xl text-white placeholder-slate-700 focus:outline-none focus:ring-2 focus:ring-teal-500 transition"
+                        value={profilePhoneVerifyCode}
+                        onChange={(e) => setProfilePhoneVerifyCode(e.target.value.replace(/\D/g, ""))}
+                      />
+                    </div>
+                    <button
+                      type="submit"
+                      disabled={verifyingPhone}
+                      className="w-full flex items-center justify-center gap-2 py-2 px-4 rounded-xl text-xs font-semibold text-slate-950 bg-teal-400 hover:bg-teal-300 transition cursor-pointer disabled:opacity-50"
+                    >
+                      {verifyingPhone ? (
+                        <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Verifying...</>
+                      ) : (
+                        "Verify and Update Phone"
                       )}
                     </button>
                   </form>

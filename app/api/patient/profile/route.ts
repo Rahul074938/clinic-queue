@@ -33,9 +33,27 @@ export async function PATCH(req: NextRequest) {
 
   const updateData: any = {};
   if (name !== undefined) updateData.name = name;
-  if (phone !== undefined) updateData.phone = phone;
 
   let emailVerifyInitiated = false;
+  let phoneVerifyInitiated = false;
+
+  if (phone !== undefined && phone !== patient.phone) {
+    // Generate 6-digit code for phone verification
+    const phoneCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const phoneExpiry = new Date(Date.now() + 15 * 60 * 1000); // 15 mins
+
+    updateData.pendingPhone = phone;
+    updateData.phoneVerifyCode = phoneCode;
+    updateData.phoneVerifyExpiry = phoneExpiry;
+    phoneVerifyInitiated = true;
+
+    // Send OTP SMS
+    const { sendSms } = await import("@/lib/sms");
+    await sendSms({
+      to: phone,
+      message: `Your ClinicQueue verification code is: ${phoneCode}. Valid for 15 minutes.`,
+    });
+  }
 
   if (email && email.toLowerCase() !== patient.email.toLowerCase()) {
     // Check if new email is already taken
@@ -82,11 +100,13 @@ export async function PATCH(req: NextRequest) {
       email: true,
       phone: true,
       pendingEmail: true,
+      pendingPhone: true,
     },
   });
 
   return apiSuccess({
     patient: updatedPatient,
     emailVerifyInitiated,
+    phoneVerifyInitiated,
   });
 }

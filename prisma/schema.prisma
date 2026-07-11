@@ -94,6 +94,9 @@ model PatientAccount {
   pendingEmail       String?
   emailVerifyCode    String?
   emailVerifyExpiry  DateTime?
+  pendingPhone       String?
+  phoneVerifyCode    String?
+  phoneVerifyExpiry  DateTime?
   createdAt          DateTime  @default(now())
   updatedAt          DateTime  @updatedAt
 
