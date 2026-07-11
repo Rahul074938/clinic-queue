@@ -81,6 +81,20 @@ export async function POST(req: NextRequest) {
   });
   if (!doctor) return apiError("Doctor not found", 404);
 
+  // Verify slot capacity (max 2 bookings per slot for the same doctor)
+  const existingBookingsCount = await prisma.appointment.count({
+    where: {
+      doctorId,
+      scheduledAt: new Date(scheduledAt),
+      status: { notIn: ["CANCELLED", "NO_SHOW"] },
+      deletedAt: null,
+    },
+  });
+
+  if (existingBookingsCount >= 2) {
+    return apiError("This time slot is fully booked. Please select another slot.", 400);
+  }
+
   try {
     const appointment = await prisma.appointment.create({
       data: {

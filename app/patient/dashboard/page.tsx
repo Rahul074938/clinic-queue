@@ -24,6 +24,7 @@ interface Slot {
   time: string;
   available: boolean;
   label: string;
+  bookedCount: number;
 }
 
 interface Appointment {
@@ -711,22 +712,46 @@ export default function PatientDashboard() {
                         ) : slots.length === 0 ? (
                           <p className="text-sm text-slate-500 italic">No slots available for this day.</p>
                         ) : (
-                          <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-                            {slots.map((slot) => (
-                              <button
-                                key={slot.time}
-                                type="button"
-                                disabled={!slot.available}
-                                onClick={() => setSelectedTime(slot.time)}
-                                className={`py-2 px-1 text-center text-xs font-semibold rounded-xl border transition cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed ${
-                                  selectedTime === slot.time
-                                    ? "bg-teal-400 border-teal-400 text-slate-950"
-                                    : "bg-slate-900 border-slate-800 hover:border-slate-650 hover:bg-slate-850"
-                                }`}
-                              >
-                                {slot.label}
-                              </button>
-                            ))}
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                            {slots.map((slot) => {
+                              const isSelected = selectedTime === slot.time;
+                              let statusColorClass = "";
+                              
+                              if (!slot.available) {
+                                if (slot.bookedCount >= 2) {
+                                  statusColorClass = "bg-rose-950/20 border-rose-900/40 text-rose-400 opacity-60 cursor-not-allowed";
+                                } else {
+                                  statusColorClass = "bg-slate-900/40 border-slate-950 text-slate-600 cursor-not-allowed";
+                                }
+                              } else {
+                                if (isSelected) {
+                                  statusColorClass = "bg-teal-400 border-teal-400 text-slate-950 shadow-md shadow-teal-500/20";
+                                } else if (slot.bookedCount === 1) {
+                                  statusColorClass = "bg-amber-500/5 border-amber-500/30 text-amber-400 hover:bg-amber-500/10 hover:border-amber-500/50 cursor-pointer";
+                                } else {
+                                  statusColorClass = "bg-emerald-500/5 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10 hover:border-emerald-500/50 cursor-pointer";
+                                }
+                              }
+
+                              return (
+                                <button
+                                  key={slot.time}
+                                  type="button"
+                                  disabled={!slot.available}
+                                  onClick={() => setSelectedTime(slot.time)}
+                                  className={`py-2 px-1 text-center text-xs font-semibold rounded-xl border transition ${statusColorClass}`}
+                                >
+                                  <div>{slot.label}</div>
+                                  <div className="text-[9px] opacity-75 mt-0.5 font-normal">
+                                    {slot.bookedCount >= 2 
+                                      ? "Full" 
+                                      : slot.bookedCount === 1 
+                                        ? "1 left" 
+                                        : "Available"}
+                                  </div>
+                                </button>
+                              );
+                            })}
                           </div>
                         )}
                       </div>

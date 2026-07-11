@@ -36,12 +36,12 @@ export async function GET(req: NextRequest) {
     select: { scheduledAt: true },
   });
 
-  const bookedTimes = new Set(
-    existing.map((a) => {
-      const d = new Date(a.scheduledAt);
-      return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
-    })
-  );
+  const bookedCounts: Record<string, number> = {};
+  for (const a of existing) {
+    const d = new Date(a.scheduledAt);
+    const timeKey = `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+    bookedCounts[timeKey] = (bookedCounts[timeKey] || 0) + 1;
+  }
 
   const allSlots = generateTimeSlots(9, 12, SLOT_DURATION_MINUTES);
   const now = new Date();
@@ -54,11 +54,12 @@ export async function GET(req: NextRequest) {
     slotDate.setHours(h!, m!, 0, 0);
 
     const isPast = isToday && slotDate < now;
-    const isBooked = bookedTimes.has(time);
+    const bookedCount = bookedCounts[time] || 0;
 
     return {
       time,
-      available: !isPast && !isBooked,
+      available: !isPast && bookedCount < 2,
+      bookedCount,
       label: new Date(slotDate).toLocaleTimeString("en-US", {
         hour: "numeric",
         minute: "2-digit",
