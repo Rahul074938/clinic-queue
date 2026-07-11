@@ -7,7 +7,7 @@ import {
   Calendar, Clock, Copy, CheckCircle2, XCircle, Loader2,
   Stethoscope, ArrowRight, ArrowLeft, User, Phone, Mail,
   FileText, LayoutDashboard, BookOpen, Ticket, AlertCircle,
-  BadgeCheck, RefreshCw, UserCheck, ShieldAlert,
+  BadgeCheck, RefreshCw, UserCheck, ShieldAlert, Sun, Moon, LogOut
 } from "lucide-react";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -124,6 +124,44 @@ export default function PatientDashboard() {
   const [verifyingPhone, setVerifyingPhone] = useState(false);
   const [activeDemoEmailCode, setActiveDemoEmailCode] = useState<string | null>(null);
   const [activeDemoPhoneOtp, setActiveDemoPhoneOtp] = useState<string | null>(null);
+
+  // Theme Toggle State
+  const [theme, setTheme] = useState<"light" | "dark">("dark");
+
+  useEffect(() => {
+    const saved = localStorage.getItem("theme") as "light" | "dark" | null;
+    if (saved === "light") {
+      setTheme("light");
+      document.documentElement.classList.add("light");
+    } else {
+      setTheme("dark");
+      document.documentElement.classList.remove("light");
+    }
+  }, []);
+
+  const toggleTheme = () => {
+    if (theme === "dark") {
+      setTheme("light");
+      document.documentElement.classList.add("light");
+      localStorage.setItem("theme", "light");
+    } else {
+      setTheme("dark");
+      document.documentElement.classList.remove("light");
+      localStorage.setItem("theme", "dark");
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      const res = await fetch("/api/patient/logout", { method: "POST" });
+      if (res.ok) {
+        toast.success("Logged out successfully.");
+        router.push("/patient/login");
+      }
+    } catch {
+      toast.error("Failed to log out.");
+    }
+  };
 
   // ─── Load session ──────────────────────────────────────────────────────────
   const fetchSession = useCallback(async () => {
@@ -394,9 +432,43 @@ export default function PatientDashboard() {
 
   // ─── Render ────────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 font-sans">
+    <div className="min-h-screen bg-slate-950 text-slate-100 font-sans transition-colors duration-200">
       {/* Ambient glow */}
       <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-teal-500/5 blur-[120px] rounded-full pointer-events-none" />
+
+      {/* Premium Dashboard Top Bar Header */}
+      <header className="border-b border-slate-900 bg-slate-950/80 backdrop-blur-md sticky top-0 z-50">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="p-1.5 bg-teal-500/20 text-teal-400 rounded-lg border border-teal-500/30">
+              <Stethoscope className="w-5 h-5" />
+            </div>
+            <span className="font-bold text-sm tracking-tight bg-gradient-to-r from-teal-400 to-purple-400 bg-clip-text text-transparent">
+              ClinicQueue
+            </span>
+          </div>
+
+          <div className="flex items-center gap-3">
+            {/* Theme switcher */}
+            <button
+              onClick={toggleTheme}
+              className="p-2 bg-slate-900 border border-slate-800 rounded-xl text-slate-400 hover:text-white transition cursor-pointer"
+              title={theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
+            >
+              {theme === "dark" ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-indigo-400" />}
+            </button>
+
+            {/* Logout button */}
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-2 text-xs font-semibold text-slate-400 hover:text-white bg-slate-900 border border-slate-800 hover:border-slate-700 px-3 py-2 rounded-xl transition cursor-pointer"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              <span>Log Out</span>
+            </button>
+          </div>
+        </div>
+      </header>
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10">
         {/* Welcome header */}
