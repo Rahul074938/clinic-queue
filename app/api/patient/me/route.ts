@@ -1,4 +1,4 @@
-import { type NextRequest, NextResponse } from "next/server";
+import { type NextRequest } from "next/server";
 import { getPatientSessionFromRequest } from "@/lib/patient-auth";
 import { apiError, apiSuccess } from "@/lib/api";
 
