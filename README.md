@@ -115,18 +115,27 @@ clinic-queue/
 │   │   ├── checkin/        # Self check-in with token
 │   │   ├── queue/[token]/  # Live queue tracker (SSE)
 │   │   └── kiosk/          # Tablet kiosk mode
+│   ├── patient/            # Patient Portal (JWT-gated)
+│   │   ├── login/          # Patient Login
+│   │   ├── register/       # Patient Registration
+│   │   └── dashboard/      # Patient Appointments & Profile settings
 │   ├── admin/              # Staff dashboard (auth-gated)
 │   │   ├── page.tsx        # Live queue management
 │   │   ├── appointments/   # Appointment CRUD table
 │   │   ├── doctors/        # Doctors directory
 │   │   └── analytics/      # Charts & metrics
-│   ├── auth/               # Login / signup / reset
+│   ├── auth/               # Staff portal login / reset / signup
 │   ├── dashboard/          # Public lobby TV board
-│   └── api/                # API routes
+│   └── api/                # API routes (patient, staff, slots, queue)
+├── components/
+│   ├── theme-toggle.tsx    # Global floating Light/Dark mode switcher
+│   └── providers.tsx       # Auth & query providers
 ├── lib/
 │   ├── auth.ts             # Auth.js config
+│   ├── patient-auth.ts     # JWT helper for Patient Portal
 │   ├── prisma.ts           # Prisma client singleton
 │   ├── api.ts              # requireAuth, rateLimit helpers
+│   ├── sms.ts              # Mock SMS utility (logs to console)
 │   └── validations/        # Zod schemas
 ├── prisma/
 │   ├── schema.prisma       # Data model
