@@ -9,7 +9,8 @@ export async function GET(req: NextRequest) {
   if (!session) return apiError("Unauthorized", 401);
 
   // Get full fresh data from the database
-  const patient = await prisma.patientAccount.findUnique({
+  const db = prisma as any;
+  const patient = await db.patientAccount.findUnique({
     where: { id: session.id },
     select: {
       id: true,

@@ -21,12 +21,14 @@ export async function POST(req: NextRequest) {
 
   const { code } = parsed.data;
 
-  const patient = await prisma.patientAccount.findUnique({
+  const db = prisma as any;
+  const patient = await db.patientAccount.findUnique({
     where: { id: session.id },
   });
 
   if (!patient) return apiError("Patient not found", 404);
   if (!patient.pendingEmail || !patient.emailVerifyCode || !patient.emailVerifyExpiry) {
+    // No verify request found
     return apiError("No pending email verification request found.", 400);
   }
 
@@ -39,7 +41,7 @@ export async function POST(req: NextRequest) {
   }
 
   // Update email address and clear pending fields
-  const updatedPatient = await prisma.patientAccount.update({
+  const updatedPatient = await db.patientAccount.update({
     where: { id: session.id },
     data: {
       email: patient.pendingEmail,

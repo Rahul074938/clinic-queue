@@ -25,7 +25,8 @@ export async function PATCH(req: NextRequest) {
   const { name, phone, email } = parsed.data;
 
   // Fetch current user details
-  const patient = await prisma.patientAccount.findUnique({
+  const db = prisma as any;
+  const patient = await db.patientAccount.findUnique({
     where: { id: session.id },
   });
   if (!patient) return apiError("Patient not found", 404);
@@ -38,7 +39,7 @@ export async function PATCH(req: NextRequest) {
 
   if (email && email.toLowerCase() !== patient.email.toLowerCase()) {
     // Check if new email is already taken
-    const existing = await prisma.patientAccount.findUnique({
+    const existing = await db.patientAccount.findUnique({
       where: { email: email.toLowerCase() },
     });
     if (existing) {
@@ -72,7 +73,7 @@ export async function PATCH(req: NextRequest) {
     });
   }
 
-  const updatedPatient = await prisma.patientAccount.update({
+  const updatedPatient = await db.patientAccount.update({
     where: { id: session.id },
     data: updateData,
     select: {
